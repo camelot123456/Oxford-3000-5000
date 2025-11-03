@@ -71,6 +71,88 @@ function getRandomSample(array, n) {
 }
 ```
 
+```javascript
+function selectRandomWords() {
+  const inputSheetName = 'OxfordWords';
+  const outputSheetName = 'SelectedWords';
+  const randomNumberWord = 20;
+
+  // 🧩 Cấu hình tỉ lệ chọn từ theo level
+  const lowLevel80Percent = 'a1';
+  const highLevel20Percent = 'a2';
+  const ratioLow = 0.8; // 80% A1
+  const ratioHigh = 0.2; // 20% A2
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const inputSheet = ss.getSheetByName(inputSheetName);
+  const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
+
+  const data = inputSheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1);
+
+  const wordIndex = headers.indexOf('word');
+  const classIndex = headers.indexOf('class');
+  const levelIndex = headers.indexOf('level');
+  const selectedIndex = headers.indexOf('selected');
+
+  const numLow = Math.round(randomNumberWord * ratioLow);
+  const numHigh = randomNumberWord - numLow;
+
+  // 🔹 Lọc các hàng đủ điều kiện cho mỗi cấp độ
+  const eligibleLow = rows
+    .map((row, i) => ({ row, i }))
+    .filter(({ row }) => row[levelIndex] === lowLevel80Percent && row[selectedIndex] !== 1);
+
+  const eligibleHigh = rows
+    .map((row, i) => ({ row, i }))
+    .filter(({ row }) => row[levelIndex] === highLevel20Percent && row[selectedIndex] !== 1);
+
+  // 🔸 Kiểm tra số lượng đủ chưa
+  if (eligibleLow.length < numLow) {
+    throw new Error(`Không đủ từ cấp độ ${lowLevel80Percent} chưa chọn (${eligibleLow.length} < ${numLow})`);
+  }
+  if (eligibleHigh.length < numHigh) {
+    throw new Error(`Không đủ từ cấp độ ${highLevel20Percent} chưa chọn (${eligibleHigh.length} < ${numHigh})`);
+  }
+
+  // 🔹 Chọn ngẫu nhiên theo từng nhóm
+  const selectedLow = getRandomSample(eligibleLow, numLow);
+  const selectedHigh = getRandomSample(eligibleHigh, numHigh);
+
+  const selected = [...selectedLow, ...selectedHigh];
+
+  const outputData = selected.map(({ row }) => [
+    row[wordIndex],
+    row[classIndex],
+    row[levelIndex],
+  ]);
+
+  // 🧾 Ghi dữ liệu ra sheet output
+  outputSheet.clearContents();
+  outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+  outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
+
+  // ✅ Đánh dấu đã chọn = 1 trong sheet gốc
+  selected.forEach(({ i }) => {
+    inputSheet.getRange(i + 2, selectedIndex + 1).setValue(1);
+  });
+}
+
+function getRandomSample(array, n) {
+  const result = [];
+  const usedIndices = new Set();
+  while (result.length < n) {
+    const i = Math.floor(Math.random() * array.length);
+    if (!usedIndices.has(i)) {
+      usedIndices.add(i);
+      result.push(array[i]);
+    }
+  }
+  return result;
+}
+```
+
 - Sau khi tạo ra sheet mới chứa 20 từ vựng, nhiệm tiếp theo là tìm nghĩa của từ ở cột bên cạnh và cách phiên âm
 - Chuyển sang định dạng csv và dán vào ChatGPT và yêu cầu chuyển định dạng csv sang định dạng của `RemNote` để có thể học từ vựng theo phương pháp `Spaced Repetition Systems`
 
