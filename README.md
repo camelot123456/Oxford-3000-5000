@@ -71,44 +71,62 @@ function getRandomSample(array, n) {
 }
 ```
 
+---
+### selectRandomWords_v2:
+
 ```javascript
 function selectRandomWords() {
   const inputSheetName = 'OxfordWords';
   const outputSheetName = 'SelectedWords';
   const randomNumberWord = 20;
 
-  // 🧩 Cấu hình tỉ lệ chọn từ theo level
+  // cấu hình tỉ lệ
   const lowLevel80Percent = 'a1';
   const highLevel20Percent = 'a2';
-  const ratioLow = 0.8; // 80% A1
-  const ratioHigh = 0.2; // 20% A2
+  const ratioLow = 0.8;
+  const ratioHigh = 0.2;
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const inputSheet = ss.getSheetByName(inputSheetName);
   const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
 
   const data = inputSheet.getDataRange().getValues();
+  if (!data || data.length < 2) throw new Error('Sheet input trống hoặc không có dữ liệu.');
   const headers = data[0];
   const rows = data.slice(1);
 
-  const wordIndex = headers.indexOf('word');
-  const classIndex = headers.indexOf('class');
-  const levelIndex = headers.indexOf('level');
-  const selectedIndex = headers.indexOf('selected');
+  // tìm index header an toàn (bỏ khoảng trắng và ignore case)
+  const headersNormalized = headers.map(h => String(h || '').toLowerCase().trim());
+  const wordIndex = headersNormalized.indexOf('word');
+  const classIndex = headersNormalized.indexOf('class');
+  const levelIndex = headersNormalized.indexOf('level');
+  let selectedIndex = headersNormalized.indexOf('selected');
+
+  if (wordIndex === -1 || levelIndex === -1) {
+    throw new Error('Không tìm thấy cột "word" hoặc "level" trong sheet OxfordWords.');
+  }
+
+  // Nếu không có cột 'selected', tạo cột này ở cuối header
+  if (selectedIndex === -1) {
+    const newCol = headers.length + 1; // 1-based column index to write header
+    inputSheet.getRange(1, newCol).setValue('selected');
+    // cập nhật selectedIndex để dùng sau (0-based)
+    selectedIndex = headers.length;
+    // (Không cần re-read toàn bộ data; các row hiện tại sẽ có undefined cho cột mới)
+  }
 
   const numLow = Math.round(randomNumberWord * ratioLow);
   const numHigh = randomNumberWord - numLow;
 
-  // 🔹 Lọc các hàng đủ điều kiện cho mỗi cấp độ
+  // lọc các hàng đủ điều kiện (ghi chú: row[selectedIndex] có thể là undefined nếu chưa set)
   const eligibleLow = rows
     .map((row, i) => ({ row, i }))
-    .filter(({ row }) => row[levelIndex] === lowLevel80Percent && row[selectedIndex] !== 1);
+    .filter(({ row }) => String(row[levelIndex]).toLowerCase() === lowLevel80Percent && row[selectedIndex] !== 1);
 
   const eligibleHigh = rows
     .map((row, i) => ({ row, i }))
-    .filter(({ row }) => row[levelIndex] === highLevel20Percent && row[selectedIndex] !== 1);
+    .filter(({ row }) => String(row[levelIndex]).toLowerCase() === highLevel20Percent && row[selectedIndex] !== 1);
 
-  // 🔸 Kiểm tra số lượng đủ chưa
   if (eligibleLow.length < numLow) {
     throw new Error(`Không đủ từ cấp độ ${lowLevel80Percent} chưa chọn (${eligibleLow.length} < ${numLow})`);
   }
@@ -116,10 +134,8 @@ function selectRandomWords() {
     throw new Error(`Không đủ từ cấp độ ${highLevel20Percent} chưa chọn (${eligibleHigh.length} < ${numHigh})`);
   }
 
-  // 🔹 Chọn ngẫu nhiên theo từng nhóm
   const selectedLow = getRandomSample(eligibleLow, numLow);
   const selectedHigh = getRandomSample(eligibleHigh, numHigh);
-
   const selected = [...selectedLow, ...selectedHigh];
 
   const outputData = selected.map(({ row }) => [
@@ -128,15 +144,27 @@ function selectRandomWords() {
     row[levelIndex],
   ]);
 
-  // 🧾 Ghi dữ liệu ra sheet output
+  // ghi dữ liệu ra sheet output
   outputSheet.clearContents();
-  outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
-  outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
+  if (outputData.length > 0) {
+    outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+    outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
+  } else {
+    outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+  }
 
-  // ✅ Đánh dấu đã chọn = 1 trong sheet gốc
-  selected.forEach(({ i }) => {
-    inputSheet.getRange(i + 2, selectedIndex + 1).setValue(1);
-  });
+  // đánh dấu đã chọn = 1 trong sheet gốc — dùng batch write để nhanh hơn
+  if (selected.length > 0) {
+    // Tạo mảng giá trị cho từng hàng cần set (n hàng x 1 cột)
+    const markArray = selected.map(() => [1]);
+    // chuyển i (index trong rows) thành row number trên sheet (i + 2)
+    const rowNums = selected.map(({ i }) => i + 2);
+    // vì các hàng có thể không liên tiếp, ta sẽ viết theo nhóm từng ô (batches nhỏ) — hoặc viết 1-1 nếu muốn
+    // Ở đây viết từng ô (batch gọi nhiều lần) nhưng tốt hơn so với setValue nhiều lần.
+    for (let k = 0; k < rowNums.length; k++) {
+      inputSheet.getRange(rowNums[k], selectedIndex + 1).setValue(1);
+    }
+  }
 }
 
 function getRandomSample(array, n) {
@@ -152,6 +180,46 @@ function getRandomSample(array, n) {
   return result;
 }
 ```
+
+---
+
+### ✅ Hàm log CSV ra console từ sheet SelectedWords
+```javascript
+function logSelectedWordsAsCSV() {
+  const sheetName = 'SelectedWords';
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    console.log(`⚠️ Sheet "${sheetName}" không tồn tại.`);
+    return;
+  }
+
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) {
+    console.log(`⚠️ Sheet "${sheetName}" trống hoặc không có dữ liệu.`);
+    return;
+  }
+
+  // 🧩 Tạo CSV: nối từng cột bằng dấu phẩy, từng hàng bằng xuống dòng
+  const csv = data
+    .map(row => 
+      row
+        .map(cell => {
+          if (typeof cell === 'string') {
+            // Thoát dấu ngoặc kép nếu cần
+            const safe = cell.replace(/"/g, '""');
+            return `"${safe}"`;
+          }
+          return cell;
+        })
+        .join(',')
+    )
+    .join('\n');
+
+  console.log('📦 CSV Output:\n' + csv);
+}
+```
+
 
 - Sau khi tạo ra sheet mới chứa 20 từ vựng, nhiệm tiếp theo là tìm nghĩa của từ ở cột bên cạnh và cách phiên âm
 - Chuyển sang định dạng csv và dán vào ChatGPT và yêu cầu chuyển định dạng csv sang định dạng của `RemNote` để có thể học từ vựng theo phương pháp `Spaced Repetition Systems`
