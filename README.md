@@ -295,6 +295,157 @@ function logSelectedWordsAsCSV() {
 | 34  | Đời sống hôn nhân – nuôi dạy con | 🌟🌟           | Thực tế với người đã lập gia đình       |
 | 35  | Văn hóa – phong tục              | 🌟🌟           | Quan trọng khi giao lưu quốc tế         |
 
+---
+
+## 🗓 30 nhóm chủ đề giao tiếp (học 1 nhóm/ngày)
+### 🧍Nhóm 1 – Làm quen & mở đầu
+- Giới thiệu bản thân
+- Chào hỏi
+- Tạm biệt
+- Hỏi thăm sức khỏe
+
+### ☕ Nhóm 2 – Giao tiếp xã hội cơ bản
+- Nói về thời tiết
+- Nói về thời gian
+- Hỏi đường
+
+### 🏠 Nhóm 3 – Gia đình & bạn bè
+- Gia đình
+- Bạn bè
+- Mô tả người (ngoại hình, tính cách)
+
+### 🕒 Nhóm 4 – Cuộc sống hằng ngày
+- Hoạt động hằng ngày
+- Mô tả nhà cửa
+- Nói về nghề nghiệp
+
+### 🎯 Nhóm 5 – Cảm xúc & sở thích
+- Hỏi sở thích
+- Bày tỏ cảm xúc
+- Kế hoạch tương lai
+
+### 💬 Nhóm 6 – Đưa lời khuyên & ý kiến
+- Hỏi ý kiến và đưa lời khuyên
+- Cách từ chối lịch sự
+- Xin lỗi và cảm ơn
+
+### 📞 Nhóm 7 – Giao tiếp qua điện thoại
+- Gọi điện thoại
+- Gọi món ăn
+- Mua sắm
+
+### 💳 Nhóm 8 – Thanh toán & hỏi giá
+- Tính tiền – trả giá
+- Giao tiếp tại ngân hàng
+- Đổi tiền – tỷ giá
+
+### 🏨 Nhóm 9 – Du lịch & khách sạn
+- Đặt phòng khách sạn
+- Sân bay và nhập cảnh
+- Mua vé (tàu, xe, máy bay)
+
+### 🗺 Nhóm 10 – Di chuyển & hỏi thông tin
+- Hỏi về tour du lịch
+- Giao tiếp khi thuê xe
+- Giao tiếp tại quầy thông tin
+
+### 🚨 Nhóm 11 – Tình huống khẩn cấp
+- Mất đồ – báo cảnh sát
+- Giao tiếp tại bệnh viện / hiệu thuốc
+- Giao tiếp tại trạm xăng
+
+### 💼 Nhóm 12 – Giao tiếp công việc cơ bản
+- Giao tiếp trong văn phòng
+- Giao tiếp trong cuộc họp
+- Giao tiếp qua email
+
+### 📅 Nhóm 13 – Lịch hẹn & phỏng vấn
+- Đặt lịch – dời lịch
+- Phỏng vấn xin việc
+- Kỹ năng viết CV
+
+### 👔 Nhóm 14 – Công sở & sếp
+- Giao tiếp với sếp
+- Giao tiếp khách hàng
+- Giải quyết xung đột nơi làm việc
+
+### 🧠 Nhóm 15 – Làm việc nhóm
+- Giao tiếp nhóm – teamwork
+- Giao tiếp khi đào tạo – training
+- Thuyết trình cơ bản
+
+### 🏫 Nhóm 16 – Học tập & định hướng
+- Giao tiếp trong trường học
+- Nói về mục tiêu nghề nghiệp
+
+### 💭 Nhóm 17 – Quan điểm & tranh luận
+- Chia sẻ quan điểm
+- Đưa ý kiến – tranh luận
+- Đàm phán, thương lượng
+
+### 💌 Nhóm 18 – Email & viết chuyên nghiệp
+- Email công việc
+- Viết email đặt lịch hẹn
+- Trả lời email chuyên nghiệp
+
+### 🧳 Nhóm 19 – Sinh hoạt cá nhân khi du lịch
+- Giao tiếp tại bưu điện
+- Giao tiếp khi đặt hàng online
+- Giao tiếp khi mua vé/đi lại
+
+### ❤️ Nhóm 20 – Tình cảm & cuộc sống cá nhân
+- Giao tiếp trong tình yêu – mối quan hệ
+- Đời sống hôn nhân
+- Trẻ em – nuôi dạy con
+
+### 🎉 Nhóm 21 – Giao tiếp xã hội nâng cao
+- Giao tiếp trong tiệc tùng
+- Thể thao
+- Âm nhạc – phim ảnh
+
+### 🌍 Nhóm 22 – Văn hóa & thế giới
+- Nói về văn hóa – phong tục
+- Môi trường – biến đổi khí hậu
+- Mạng xã hội – công nghệ
+
+### ✈️ Nhóm 23 – Visa & nhập cư
+- Phỏng vấn ngắn (visa, nhập cảnh)
+- Tình huống ở sân bay
+
+### 🧾 Nhóm 24 – Dịch vụ & hỗ trợ
+- Giao tiếp tại quầy thông tin
+- Giao tiếp tại ngân hàng
+- Hỏi về tour du lịch
+
+### 🧩 Nhóm 25 – Cảm xúc & giao tiếp cá nhân
+- Bày tỏ cảm xúc
+- Xin lỗi và cảm ơn
+- Cách từ chối lịch sự
+
+### 📈 Nhóm 26 – Nâng cao kỹ năng công sở
+- Đàm phán, thương lượng
+- Giải quyết xung đột
+- Thuyết trình
+
+### 🌐 Nhóm 27 – Kết nối toàn cầu
+- Công nghệ – mạng xã hội
+- Môi trường – thời sự
+- Văn hóa – phong tục
+
+### 👪 Nhóm 28 – Cuộc sống gia đình
+- Gia đình
+- Đời sống hôn nhân
+- Nuôi dạy con
+
+### 🗣️ Nhóm 29 – Thực hành phản xạ
+- Các câu hỏi thường gặp
+- Câu điều kiện & câu mệnh lệnh
+- Câu bị động trong giao tiếp
+
+### 🔁 Nhóm 30 – Ôn tổng hợp
+- Review các chủ đề đã học
+- Luyện hội thoại kết hợp (ví dụ: chào hỏi + thời tiết + sở thích)
+
 
 ### **Tập đọc với đoạn hội thoại:**
 - Sử dụng [Chat GPT](https://chatgpt.com/) để tạo đoạn hội thoại + [TTSReader](https://ttsreader.com/player/)
@@ -307,9 +458,9 @@ function logSelectedWordsAsCSV() {
         - tiêu chí: tính tự nhiên, cảm xúc, sử dụng các câu tập phản xạ
         - tích hợp công cụ tạo file giọng nói: https://ttsreader.com/
         - định dạng đoạn hội thoại như sau:
-        {{set: lang=en; name=Aria; }}
-        ghi câu hội thoại của Aria ở đây
-        {{set: lang=en; name=Mark; }}
+        {{set: lang=en; name=Olivia; rate=0.85 }}
+        ghi câu hội thoại của Olivia ở đây
+        {{set: lang=en; name=Mark; rate=0.85 }}
         ghi câu hội thoại của Mark ở đây
         - danh sách từ vựng:
         word,class,level
