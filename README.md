@@ -2,230 +2,230 @@
 
 ## **1. Soạn tài liệu mỗi ngày:**
 
-### **Từ vựng:**
+### **1.1. Từ vựng:**
 
-- Sử dụng danh sách 5000 từ vựng Oxford, sau đó phân loại level, rồi chọn ngẫu nhiên 20 từ không trùng lặp
+- Sử dụng danh sách 5000 từ vựng Oxford, sau đó phân loại level, rồi chọn ngẫu nhiên số lượng tùy chọn từ không trùng lặp
 - Sử dụng App Script:
-```javascript
-function selectRandomWords() {
-  const inputSheetName = 'OxfordWords';
-  const outputSheetName = 'SelectedWords';
-  const randomNumberWord = 20;
-  const selectLevel = 'a1';
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const inputSheet = ss.getSheetByName(inputSheetName);
-  const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
+  ***+ selectRandomWords:***
+  ```javascript
+  function selectRandomWords() {
+    const inputSheetName = 'OxfordWords'; // có thể tùy chỉnh
+    const outputSheetName = 'SelectedWords'; // có thể tùy chỉnh
+    const randomNumberWord = 20; // có thể tùy chỉnh
+    const selectLevel = 'a1'; // có thể tùy chỉnh
 
-  const data = inputSheet.getDataRange().getValues();
-  const headers = data[0];
-  const rows = data.slice(1);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const inputSheet = ss.getSheetByName(inputSheetName);
+    const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
 
-  const wordIndex = headers.indexOf('word');
-  const classIndex = headers.indexOf('class');
-  const levelIndex = headers.indexOf('level');
-  const selectedIndex = headers.indexOf('selected');
+    const data = inputSheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1);
 
-  // if (selectedIndex === -1) {
-  //   inputSheet.getRange(1, headers.length + 1).setValue('selected');
-  // }
+    const wordIndex = headers.indexOf('word');
+    const classIndex = headers.indexOf('class');
+    const levelIndex = headers.indexOf('level');
+    const selectedIndex = headers.indexOf('selected');
 
-  const eligibleRows = rows
-    .map((row, i) => ({ row, i }))
-    .filter(({ row }) => row[levelIndex] === selectLevel && row[selectedIndex] !== 1);
+    // if (selectedIndex === -1) {
+    //   inputSheet.getRange(1, headers.length + 1).setValue('selected');
+    // }
 
-  if (eligibleRows.length < randomNumberWord) {
-    throw new Error(`Không đủ từ cấp độ ${selectLevel} chưa chọn (${eligibleRows.length} < ${randomNumberWord})`);
-  }
+    const eligibleRows = rows
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => row[levelIndex] === selectLevel && row[selectedIndex] !== 1);
 
-  const selected = getRandomSample(eligibleRows, randomNumberWord);
-
-  const outputData = selected.map(({ row }) => [
-    row[wordIndex],
-    row[classIndex],
-    row[levelIndex],
-  ]);
-
-  // Ghi dữ liệu ra sheet output
-  outputSheet.clearContents();
-  outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
-  outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
-
-  // Đánh dấu đã chọn = 1 trong sheet gốc
-  selected.forEach(({ i }) => {
-    inputSheet.getRange(i + 2, selectedIndex + 1).setValue(1);
-  });
-}
-
-function getRandomSample(array, n) {
-  const result = [];
-  const usedIndices = new Set();
-  while (result.length < n) {
-    const i = Math.floor(Math.random() * array.length);
-    if (!usedIndices.has(i)) {
-      usedIndices.add(i);
-      result.push(array[i]);
+    if (eligibleRows.length < randomNumberWord) {
+      throw new Error(`Không đủ từ cấp độ ${selectLevel} chưa chọn (${eligibleRows.length} < ${randomNumberWord})`);
     }
-  }
-  return result;
-}
-```
 
----
-### selectRandomWords_v2:
+    const selected = getRandomSample(eligibleRows, randomNumberWord);
 
-```javascript
-function selectRandomWords() {
-  const inputSheetName = 'OxfordWords';
-  const outputSheetName = 'SelectedWords';
-  const randomNumberWord = 20;
+    const outputData = selected.map(({ row }) => [
+      row[wordIndex],
+      row[classIndex],
+      row[levelIndex],
+    ]);
 
-  // cấu hình tỉ lệ
-  const lowLevel80Percent = 'a1';
-  const highLevel20Percent = 'a2';
-  const ratioLow = 0.8;
-  const ratioHigh = 0.2;
-
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const inputSheet = ss.getSheetByName(inputSheetName);
-  const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
-
-  const data = inputSheet.getDataRange().getValues();
-  if (!data || data.length < 2) throw new Error('Sheet input trống hoặc không có dữ liệu.');
-  const headers = data[0];
-  const rows = data.slice(1);
-
-  // tìm index header an toàn (bỏ khoảng trắng và ignore case)
-  const headersNormalized = headers.map(h => String(h || '').toLowerCase().trim());
-  const wordIndex = headersNormalized.indexOf('word');
-  const classIndex = headersNormalized.indexOf('class');
-  const levelIndex = headersNormalized.indexOf('level');
-  let selectedIndex = headersNormalized.indexOf('selected');
-
-  if (wordIndex === -1 || levelIndex === -1) {
-    throw new Error('Không tìm thấy cột "word" hoặc "level" trong sheet OxfordWords.');
-  }
-
-  // Nếu không có cột 'selected', tạo cột này ở cuối header
-  if (selectedIndex === -1) {
-    const newCol = headers.length + 1; // 1-based column index to write header
-    inputSheet.getRange(1, newCol).setValue('selected');
-    // cập nhật selectedIndex để dùng sau (0-based)
-    selectedIndex = headers.length;
-    // (Không cần re-read toàn bộ data; các row hiện tại sẽ có undefined cho cột mới)
-  }
-
-  const numLow = Math.round(randomNumberWord * ratioLow);
-  const numHigh = randomNumberWord - numLow;
-
-  // lọc các hàng đủ điều kiện (ghi chú: row[selectedIndex] có thể là undefined nếu chưa set)
-  const eligibleLow = rows
-    .map((row, i) => ({ row, i }))
-    .filter(({ row }) => String(row[levelIndex]).toLowerCase() === lowLevel80Percent && row[selectedIndex] !== 1);
-
-  const eligibleHigh = rows
-    .map((row, i) => ({ row, i }))
-    .filter(({ row }) => String(row[levelIndex]).toLowerCase() === highLevel20Percent && row[selectedIndex] !== 1);
-
-  if (eligibleLow.length < numLow) {
-    throw new Error(`Không đủ từ cấp độ ${lowLevel80Percent} chưa chọn (${eligibleLow.length} < ${numLow})`);
-  }
-  if (eligibleHigh.length < numHigh) {
-    throw new Error(`Không đủ từ cấp độ ${highLevel20Percent} chưa chọn (${eligibleHigh.length} < ${numHigh})`);
-  }
-
-  const selectedLow = getRandomSample(eligibleLow, numLow);
-  const selectedHigh = getRandomSample(eligibleHigh, numHigh);
-  const selected = [...selectedLow, ...selectedHigh];
-
-  const outputData = selected.map(({ row }) => [
-    row[wordIndex],
-    row[classIndex],
-    row[levelIndex],
-  ]);
-
-  // ghi dữ liệu ra sheet output
-  outputSheet.clearContents();
-  if (outputData.length > 0) {
+    // Ghi dữ liệu ra sheet output
+    outputSheet.clearContents();
     outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
     outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
-  } else {
-    outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+
+    // Đánh dấu đã chọn = 1 trong sheet gốc
+    selected.forEach(({ i }) => {
+      inputSheet.getRange(i + 2, selectedIndex + 1).setValue(1);
+    });
   }
 
-  // đánh dấu đã chọn = 1 trong sheet gốc — dùng batch write để nhanh hơn
-  if (selected.length > 0) {
-    // Tạo mảng giá trị cho từng hàng cần set (n hàng x 1 cột)
-    const markArray = selected.map(() => [1]);
-    // chuyển i (index trong rows) thành row number trên sheet (i + 2)
-    const rowNums = selected.map(({ i }) => i + 2);
-    // vì các hàng có thể không liên tiếp, ta sẽ viết theo nhóm từng ô (batches nhỏ) — hoặc viết 1-1 nếu muốn
-    // Ở đây viết từng ô (batch gọi nhiều lần) nhưng tốt hơn so với setValue nhiều lần.
-    for (let k = 0; k < rowNums.length; k++) {
-      inputSheet.getRange(rowNums[k], selectedIndex + 1).setValue(1);
+  function getRandomSample(array, n) {
+    const result = [];
+    const usedIndices = new Set();
+    while (result.length < n) {
+      const i = Math.floor(Math.random() * array.length);
+      if (!usedIndices.has(i)) {
+        usedIndices.add(i);
+        result.push(array[i]);
+      }
+    }
+    return result;
+  }
+  ```
+
+  ***+ selectRandomWords_v2:***
+
+  ```javascript
+  function selectRandomWords() {
+    const inputSheetName = 'OxfordWords'; // có thể tùy chỉnh
+    const outputSheetName = 'SelectedWords'; // có thể tùy chỉnh
+    const randomNumberWord = 20; // có thể tùy chỉnh
+
+    // cấu hình tỉ lệ
+    const lowLevel80Percent = 'a1'; // có thể tùy chỉnh
+    const highLevel20Percent = 'a2'; // có thể tùy chỉnh
+    const ratioLow = 0.8; // có thể tùy chỉnh
+    const ratioHigh = 0.2; // có thể tùy chỉnh
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const inputSheet = ss.getSheetByName(inputSheetName);
+    const outputSheet = ss.getSheetByName(outputSheetName) || ss.insertSheet(outputSheetName);
+
+    const data = inputSheet.getDataRange().getValues();
+    if (!data || data.length < 2) throw new Error('Sheet input trống hoặc không có dữ liệu.');
+    const headers = data[0];
+    const rows = data.slice(1);
+
+    // tìm index header an toàn (bỏ khoảng trắng và ignore case)
+    const headersNormalized = headers.map(h => String(h || '').toLowerCase().trim());
+    const wordIndex = headersNormalized.indexOf('word');
+    const classIndex = headersNormalized.indexOf('class');
+    const levelIndex = headersNormalized.indexOf('level');
+    let selectedIndex = headersNormalized.indexOf('selected');
+
+    if (wordIndex === -1 || levelIndex === -1) {
+      throw new Error('Không tìm thấy cột "word" hoặc "level" trong sheet OxfordWords.');
+    }
+
+    // Nếu không có cột 'selected', tạo cột này ở cuối header
+    if (selectedIndex === -1) {
+      const newCol = headers.length + 1; // 1-based column index to write header
+      inputSheet.getRange(1, newCol).setValue('selected');
+      // cập nhật selectedIndex để dùng sau (0-based)
+      selectedIndex = headers.length;
+      // (Không cần re-read toàn bộ data; các row hiện tại sẽ có undefined cho cột mới)
+    }
+
+    const numLow = Math.round(randomNumberWord * ratioLow);
+    const numHigh = randomNumberWord - numLow;
+
+    // lọc các hàng đủ điều kiện (ghi chú: row[selectedIndex] có thể là undefined nếu chưa set)
+    const eligibleLow = rows
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => String(row[levelIndex]).toLowerCase() === lowLevel80Percent && row[selectedIndex] !== 1);
+
+    const eligibleHigh = rows
+      .map((row, i) => ({ row, i }))
+      .filter(({ row }) => String(row[levelIndex]).toLowerCase() === highLevel20Percent && row[selectedIndex] !== 1);
+
+    if (eligibleLow.length < numLow) {
+      throw new Error(`Không đủ từ cấp độ ${lowLevel80Percent} chưa chọn (${eligibleLow.length} < ${numLow})`);
+    }
+    if (eligibleHigh.length < numHigh) {
+      throw new Error(`Không đủ từ cấp độ ${highLevel20Percent} chưa chọn (${eligibleHigh.length} < ${numHigh})`);
+    }
+
+    const selectedLow = getRandomSample(eligibleLow, numLow);
+    const selectedHigh = getRandomSample(eligibleHigh, numHigh);
+    const selected = [...selectedLow, ...selectedHigh];
+
+    const outputData = selected.map(({ row }) => [
+      row[wordIndex],
+      row[classIndex],
+      row[levelIndex],
+    ]);
+
+    // ghi dữ liệu ra sheet output
+    outputSheet.clearContents();
+    if (outputData.length > 0) {
+      outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+      outputSheet.getRange(2, 1, outputData.length, 3).setValues(outputData);
+    } else {
+      outputSheet.getRange(1, 1, 1, 3).setValues([['word', 'class', 'level']]);
+    }
+
+    // đánh dấu đã chọn = 1 trong sheet gốc — dùng batch write để nhanh hơn
+    if (selected.length > 0) {
+      // Tạo mảng giá trị cho từng hàng cần set (n hàng x 1 cột)
+      const markArray = selected.map(() => [1]);
+      // chuyển i (index trong rows) thành row number trên sheet (i + 2)
+      const rowNums = selected.map(({ i }) => i + 2);
+      // vì các hàng có thể không liên tiếp, ta sẽ viết theo nhóm từng ô (batches nhỏ) — hoặc viết 1-1 nếu muốn
+      // Ở đây viết từng ô (batch gọi nhiều lần) nhưng tốt hơn so với setValue nhiều lần.
+      for (let k = 0; k < rowNums.length; k++) {
+        inputSheet.getRange(rowNums[k], selectedIndex + 1).setValue(1);
+      }
     }
   }
-}
 
-function getRandomSample(array, n) {
-  const result = [];
-  const usedIndices = new Set();
-  while (result.length < n) {
-    const i = Math.floor(Math.random() * array.length);
-    if (!usedIndices.has(i)) {
-      usedIndices.add(i);
-      result.push(array[i]);
+  function getRandomSample(array, n) {
+    const result = [];
+    const usedIndices = new Set();
+    while (result.length < n) {
+      const i = Math.floor(Math.random() * array.length);
+      if (!usedIndices.has(i)) {
+        usedIndices.add(i);
+        result.push(array[i]);
+      }
     }
+    return result;
   }
-  return result;
-}
-```
+  ```
 
----
+  ***+ Hàm log CSV ra console từ sheet SelectedWords:***
+  ```javascript
+  function logSelectedWordsAsCSV() {
+    const sheetName = 'SelectedWords';
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      console.log(`⚠️ Sheet "${sheetName}" không tồn tại.`);
+      return;
+    }
 
-### ✅ Hàm log CSV ra console từ sheet SelectedWords
-```javascript
-function logSelectedWordsAsCSV() {
-  const sheetName = 'SelectedWords';
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(sheetName);
-  if (!sheet) {
-    console.log(`⚠️ Sheet "${sheetName}" không tồn tại.`);
-    return;
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) {
+      console.log(`⚠️ Sheet "${sheetName}" trống hoặc không có dữ liệu.`);
+      return;
+    }
+
+    // 🧩 Tạo CSV: nối từng cột bằng dấu phẩy, từng hàng bằng xuống dòng
+    const csv = data
+      .map(row => 
+        row
+          .map(cell => {
+            if (typeof cell === 'string') {
+              // Thoát dấu ngoặc kép nếu cần
+              const safe = cell.replace(/"/g, '""');
+              return `"${safe}"`;
+            }
+            return cell;
+          })
+          .join(',')
+      )
+      .join('\n');
+
+    console.log('📦 CSV Output:\n' + csv);
   }
+  ```
+- Sau khi tạo ra sheet mới chứa sô lượng từ vựng, nhiệm vụ tiếp theo là tìm nghĩa của từ ở cột bên cạnh và cách phiên âm
+- Chuyển sang định dạng csv bằng hàm `logSelectedWordsAsCSV()` trong `AppScript` và dán vào ChatGPT và yêu cầu chuyển định dạng csv sang định dạng của `RemNote` để có thể học từ vựng theo phương pháp `Spaced Repetition Systems`:
+  ```less
+  Định dạng cho RemNote:
+  en_word <: vi_nghĩa #(bật Type In Answer)
+  ```
 
-  const data = sheet.getDataRange().getValues();
-  if (data.length < 2) {
-    console.log(`⚠️ Sheet "${sheetName}" trống hoặc không có dữ liệu.`);
-    return;
-  }
-
-  // 🧩 Tạo CSV: nối từng cột bằng dấu phẩy, từng hàng bằng xuống dòng
-  const csv = data
-    .map(row => 
-      row
-        .map(cell => {
-          if (typeof cell === 'string') {
-            // Thoát dấu ngoặc kép nếu cần
-            const safe = cell.replace(/"/g, '""');
-            return `"${safe}"`;
-          }
-          return cell;
-        })
-        .join(',')
-    )
-    .join('\n');
-
-  console.log('📦 CSV Output:\n' + csv);
-}
-```
-
-
-- Sau khi tạo ra sheet mới chứa 20 từ vựng, nhiệm tiếp theo là tìm nghĩa của từ ở cột bên cạnh và cách phiên âm
-- Chuyển sang định dạng csv và dán vào ChatGPT và yêu cầu chuyển định dạng csv sang định dạng của `RemNote` để có thể học từ vựng theo phương pháp `Spaced Repetition Systems`
-
-### **Ngữ pháp:**
-
+### **1.2. Ngữ pháp:**
 - Từ loại (Parts of Speech) – nền tảng quan trọng
 - Các Thì Cơ Bản & Thường Dùng:
     - Hiện tại đơn
@@ -253,8 +253,63 @@ function logSelectedWordsAsCSV() {
 - Mạo từ (Articles): a, an, the
 - Sở hữu (Possessives)
 - Các cấu trúc câu quan trọng
+### **1.3. Tập đọc với đoạn hội thoại:**
+  - Sử dụng [Chat GPT](https://chatgpt.com/) để tạo đoạn hội thoại + [TTS_Dialogue_generator](TTS_Dialogue_Generator.md) (**Khuyến khích**) hoặc có thể dùng  [TTSReader](https://ttsreader.com/player/)
+  - Prompt cho ChatGPT:
+    ```chatgpt
+    Xin chào, tôi sẽ cung cấp danh sách 30 từ vựng tiếng anh ở định dạng .CSV, bạn hãy tạo giúp tôi 1 đoạn hội thoại bao gồm đủ 30 từ để tôi luyện tập giao tiếp và phải bao gồm các yêu cầu sau: 
+    - level: a1, a2 
+    - chủ đề: Nhóm 2 – Giao tiếp xã hội cơ bản(Nói về thời tiết, Nói về thời gian, Hỏi đường)
+    - yêu cầu ngữ pháp: hiện tại đơn, hiện tại tiếp diễn
+    - tiêu chí: tính tự nhiên, cảm xúc, giao tiếp như người bản xử, sử dụng các câu tập phản xạ
+    - định dạng đoạn hội thoại như sau:
+      voice1: ghi câu hội thoại của Olivia ở đây 
+      voice2: ghi câu hội thoại của Mark ở đây
+    - danh sách từ vựng:
+      "word","class","level"
+      "later","adverb","a1"
+      "improve","verb","a1"
+      ...
+    bạn hãy bổ sung GHI CHÚ NGỮ PHÁP ở cuối đoạn văn để tôi có thể biết bạn đang sử sử dụng nhưng ngữ pháp nào trong đoạn hội thoại.
 
-### **Chủ đề để luyện giao tiếp:**
+    Xin cảm ơn!
+    ```
+### **1.4. Luyện nghe:**
+  Copy đoạn hội thoại do [Chat GPT](https://chatgpt.com/) tạo ra và dán vào file `dialogue.txt` sau đó chạy lệnh python generation (đọc ở [TTS_Dialogue_generator](TTS_Dialogue_Generator.md))
+Hoặc dán vào [TTSReader V3.6.0 - TTSReader's Text to Speech Player](https://ttsreader.com/player/)
+
+
+### **1.5. Luyện nói:**
+Sử dụng [ChatGPT Voice]() để luyện giao tiếp
+
+---
+
+## **2. Các bước thực hiện:**
+1. Chuyển đổi định dạng file `Oxford-5000.csv` thành `Oxford-5000.xlsx`
+1. Nhân bản sheet gốc để dự phòng
+1. Dán đoạn mã App Script `selectRandomWords_v2` vào `.xlsx` và nhấn nút Run để chọn ngẫu nhiên số lượng từ vựng
+1. Tra từ điển nghĩa và phiên âm (mặc định giọng Mỹ)
+1. Dán prompt vào [ChatGPT](https://chatgpt.com/) để tự động tạo đoạn hội thoại
+1. Dán đoạn hội thoại vào file `dialogue.txt` để tạo đoạn ghi âm hội thoại (đọc tài liệu [TTS_Dialogue_Generator.md](TTS_Dialogue_Generator.md))
+1. ~~Dán đoạn hội thoại vào [TTSReader](https://ttsreader.com/player/) để tạo đoạn ghi âm hội thoại~~
+1. Luyện đọc, luyện nghe đoạn hội thoại
+1. Cuối ngày, học thuộc từ vựng bằng phương pháp `Spaced Repetition Systems` ([RemNote](https://www.remnote.com/), [Quizlet](https://quizlet.com/), [Anki](https://ankiweb.net/about))
+1. Làm bài test về ngữ pháp và từ vựng bằng ứng dụng [Rem Note](https://www.remnote.com/)
+
+## **3. Yêu cầu:**
+1. Xem nhanh các từ vựng mới, không học thuộc trực tiếp
+1. Dịch nghĩa của từ
+1. Tập phát âm chính xác mỗi từ
+1. Tạo đoạn hội thoại, đọc lướt qua
+1. Nghe đoạn hội thoại và đoán nghĩa
+1. Tập trung các câu phản xạ
+1. Đọc nhái theo các câu
+1. Ghi chú ngữ pháp trong hội thoại
+1. Bài tập kiểm tra số từ đã thuộc dùng `RemNote`
+1. Cứ 3 buổi sẽ sử dụng `ChatGPT` để luyện nghe nói 1:1 trực tiếp với AI
+---
+
+# **Chủ đề để luyện giao tiếp:**
 🔝 TOP 35 Chủ đề Giao tiếp Thiết yếu – Sắp xếp theo mức độ phổ biến & cần thiết:
 
 | STT | Chủ đề                           | Mức độ sử dụng | Lý do thiết yếu                         |
@@ -297,217 +352,157 @@ function logSelectedWordsAsCSV() {
 
 ---
 
-## 🗓 30 nhóm chủ đề giao tiếp (học 1 nhóm/ngày)
-### 🧍Nhóm 1 – Làm quen & mở đầu
+# 🗓 30 nhóm chủ đề giao tiếp (học 1 nhóm/ngày)
+## 🧍Nhóm 1 – Làm quen & mở đầu
 - Giới thiệu bản thân
 - Chào hỏi
 - Tạm biệt
 - Hỏi thăm sức khỏe
 
-### ☕ Nhóm 2 – Giao tiếp xã hội cơ bản
+## ☕ Nhóm 2 – Giao tiếp xã hội cơ bản
 - Nói về thời tiết
 - Nói về thời gian
 - Hỏi đường
 
-### 🏠 Nhóm 3 – Gia đình & bạn bè
+## 🏠 Nhóm 3 – Gia đình & bạn bè
 - Gia đình
 - Bạn bè
 - Mô tả người (ngoại hình, tính cách)
 
-### 🕒 Nhóm 4 – Cuộc sống hằng ngày
+## 🕒 Nhóm 4 – Cuộc sống hằng ngày
 - Hoạt động hằng ngày
 - Mô tả nhà cửa
 - Nói về nghề nghiệp
 
-### 🎯 Nhóm 5 – Cảm xúc & sở thích
+## 🎯 Nhóm 5 – Cảm xúc & sở thích
 - Hỏi sở thích
 - Bày tỏ cảm xúc
 - Kế hoạch tương lai
 
-### 💬 Nhóm 6 – Đưa lời khuyên & ý kiến
+## 💬 Nhóm 6 – Đưa lời khuyên & ý kiến
 - Hỏi ý kiến và đưa lời khuyên
 - Cách từ chối lịch sự
 - Xin lỗi và cảm ơn
 
-### 📞 Nhóm 7 – Giao tiếp qua điện thoại
+## 📞 Nhóm 7 – Giao tiếp qua điện thoại
 - Gọi điện thoại
 - Gọi món ăn
 - Mua sắm
 
-### 💳 Nhóm 8 – Thanh toán & hỏi giá
+## 💳 Nhóm 8 – Thanh toán & hỏi giá
 - Tính tiền – trả giá
 - Giao tiếp tại ngân hàng
 - Đổi tiền – tỷ giá
 
-### 🏨 Nhóm 9 – Du lịch & khách sạn
+## 🏨 Nhóm 9 – Du lịch & khách sạn
 - Đặt phòng khách sạn
 - Sân bay và nhập cảnh
 - Mua vé (tàu, xe, máy bay)
 
-### 🗺 Nhóm 10 – Di chuyển & hỏi thông tin
+## 🗺 Nhóm 10 – Di chuyển & hỏi thông tin
 - Hỏi về tour du lịch
 - Giao tiếp khi thuê xe
 - Giao tiếp tại quầy thông tin
 
-### 🚨 Nhóm 11 – Tình huống khẩn cấp
+## 🚨 Nhóm 11 – Tình huống khẩn cấp
 - Mất đồ – báo cảnh sát
 - Giao tiếp tại bệnh viện / hiệu thuốc
 - Giao tiếp tại trạm xăng
 
-### 💼 Nhóm 12 – Giao tiếp công việc cơ bản
+## 💼 Nhóm 12 – Giao tiếp công việc cơ bản
 - Giao tiếp trong văn phòng
 - Giao tiếp trong cuộc họp
 - Giao tiếp qua email
 
-### 📅 Nhóm 13 – Lịch hẹn & phỏng vấn
+## 📅 Nhóm 13 – Lịch hẹn & phỏng vấn
 - Đặt lịch – dời lịch
 - Phỏng vấn xin việc
 - Kỹ năng viết CV
 
-### 👔 Nhóm 14 – Công sở & sếp
+## 👔 Nhóm 14 – Công sở & sếp
 - Giao tiếp với sếp
 - Giao tiếp khách hàng
 - Giải quyết xung đột nơi làm việc
 
-### 🧠 Nhóm 15 – Làm việc nhóm
+## 🧠 Nhóm 15 – Làm việc nhóm
 - Giao tiếp nhóm – teamwork
 - Giao tiếp khi đào tạo – training
 - Thuyết trình cơ bản
 
-### 🏫 Nhóm 16 – Học tập & định hướng
+## 🏫 Nhóm 16 – Học tập & định hướng
 - Giao tiếp trong trường học
 - Nói về mục tiêu nghề nghiệp
 
-### 💭 Nhóm 17 – Quan điểm & tranh luận
+## 💭 Nhóm 17 – Quan điểm & tranh luận
 - Chia sẻ quan điểm
 - Đưa ý kiến – tranh luận
 - Đàm phán, thương lượng
 
-### 💌 Nhóm 18 – Email & viết chuyên nghiệp
+## 💌 Nhóm 18 – Email & viết chuyên nghiệp
 - Email công việc
 - Viết email đặt lịch hẹn
 - Trả lời email chuyên nghiệp
 
-### 🧳 Nhóm 19 – Sinh hoạt cá nhân khi du lịch
+## 🧳 Nhóm 19 – Sinh hoạt cá nhân khi du lịch
 - Giao tiếp tại bưu điện
 - Giao tiếp khi đặt hàng online
 - Giao tiếp khi mua vé/đi lại
 
-### ❤️ Nhóm 20 – Tình cảm & cuộc sống cá nhân
+## ❤️ Nhóm 20 – Tình cảm & cuộc sống cá nhân
 - Giao tiếp trong tình yêu – mối quan hệ
 - Đời sống hôn nhân
 - Trẻ em – nuôi dạy con
 
-### 🎉 Nhóm 21 – Giao tiếp xã hội nâng cao
+## 🎉 Nhóm 21 – Giao tiếp xã hội nâng cao
 - Giao tiếp trong tiệc tùng
 - Thể thao
 - Âm nhạc – phim ảnh
 
-### 🌍 Nhóm 22 – Văn hóa & thế giới
+## 🌍 Nhóm 22 – Văn hóa & thế giới
 - Nói về văn hóa – phong tục
 - Môi trường – biến đổi khí hậu
 - Mạng xã hội – công nghệ
 
-### ✈️ Nhóm 23 – Visa & nhập cư
+## ✈️ Nhóm 23 – Visa & nhập cư
 - Phỏng vấn ngắn (visa, nhập cảnh)
 - Tình huống ở sân bay
 
-### 🧾 Nhóm 24 – Dịch vụ & hỗ trợ
+## 🧾 Nhóm 24 – Dịch vụ & hỗ trợ
 - Giao tiếp tại quầy thông tin
 - Giao tiếp tại ngân hàng
 - Hỏi về tour du lịch
 
-### 🧩 Nhóm 25 – Cảm xúc & giao tiếp cá nhân
+## 🧩 Nhóm 25 – Cảm xúc & giao tiếp cá nhân
 - Bày tỏ cảm xúc
 - Xin lỗi và cảm ơn
 - Cách từ chối lịch sự
 
-### 📈 Nhóm 26 – Nâng cao kỹ năng công sở
+## 📈 Nhóm 26 – Nâng cao kỹ năng công sở
 - Đàm phán, thương lượng
 - Giải quyết xung đột
 - Thuyết trình
 
-### 🌐 Nhóm 27 – Kết nối toàn cầu
+## 🌐 Nhóm 27 – Kết nối toàn cầu
 - Công nghệ – mạng xã hội
 - Môi trường – thời sự
 - Văn hóa – phong tục
 
-### 👪 Nhóm 28 – Cuộc sống gia đình
+## 👪 Nhóm 28 – Cuộc sống gia đình
 - Gia đình
 - Đời sống hôn nhân
 - Nuôi dạy con
 
-### 🗣️ Nhóm 29 – Thực hành phản xạ
+## 🗣️ Nhóm 29 – Thực hành phản xạ
 - Các câu hỏi thường gặp
 - Câu điều kiện & câu mệnh lệnh
 - Câu bị động trong giao tiếp
 
-### 🔁 Nhóm 30 – Ôn tổng hợp
+## 🔁 Nhóm 30 – Ôn tổng hợp
 - Review các chủ đề đã học
 - Luyện hội thoại kết hợp (ví dụ: chào hỏi + thời tiết + sở thích)
-
-
-### **Tập đọc với đoạn hội thoại:**
-- Sử dụng [Chat GPT](https://chatgpt.com/) để tạo đoạn hội thoại + [TTSReader](https://ttsreader.com/player/)
-- Prompt cho ChatGPT:
-
-        Xin chào, tôi sẽ cung cấp danh sách 20 từ vựng tiếng anh ở định dạng .CSV, bạn hãy tạo giúp tôi 1 đoạn hội thoại để tôi luyện tập giao tiếp và phải bao gồm các yêu cầu sau:
-        - level: a1
-        - chủ đề: công việc, văn phòng, đi làm
-        - yêu cầu ngữ pháp: hiện tại đơn, hiện tại tiếp diễn
-        - tiêu chí: tính tự nhiên, cảm xúc, sử dụng các câu tập phản xạ
-        - tích hợp công cụ tạo file giọng nói: https://ttsreader.com/
-        - định dạng đoạn hội thoại như sau:
-        {{set: lang=en; name=Olivia; rate=0.85 }}
-        ghi câu hội thoại của Olivia ở đây
-        {{set: lang=en; name=Mark; rate=0.85 }}
-        ghi câu hội thoại của Mark ở đây
-        - danh sách từ vựng:
-        word,class,level
-        telephone,verb,a1
-        person,noun,a1
-        ...
-        bạn hãy bổ sung GHI CHÚ NGỮ PHÁP ở cuối đoạn văn để tôi có thể biết bạn đang sử sử dụng nhưng ngữ pháp nào trong đoạn hội thoại.
-
-        Xin cảm ơn!
-
-
-### **Luyện nghe:**
-Copy đoạn hội thoại do [Chat GPT](https://chatgpt.com/) tạo ra và dán vào [TTSReader V3.6.0 - TTSReader's Text to Speech Player](https://ttsreader.com/player/)
-
-
-
-### **Luyện nói:**
-Sử dụng [ChatGPT Voice]() để luyện giao tiếp
-
 ---
 
-## **2. Các bước thực hiện:**
-1. Chuyển đổi định dạng file `Oxford-5000.csv` thành `Oxford-5000.xlsx`
-1. Nhân bản sheet gốc để dự phòng
-1. Dán đoạn mã App Script vào `.xlsx` và nhấn nút Run để chọn ngẫu nhiên 20 từ vựng
-1. Bổ sung thêm cột nghĩa và phiên âm (mặc định giọng Mỹ)
-1. Dán prompt vào [ChatGPT](https://chatgpt.com/) để tự động tạo đoạn hội thoại
-1. Dán đoạn hội thoại vào [TTSReader](https://ttsreader.com/player/) để tạo đoạn ghi âm hội thoại
-1. Luyện đọc, luyện nghe đoạn hội thoại
-1. Cuối ngày, học thuộc từ vựng bằng phương pháp `Spaced Repetition Systems` ([RemNote](https://www.remnote.com/), [Quizlet](https://quizlet.com/), [Anki](https://ankiweb.net/about))
-1. Làm bài test về ngữ pháp và từ vựng bằng ứng dụng [Rem Note](https://www.remnote.com/)
-
-## **3. Yêu cầu:**
-1. Xem nhanh 20 từ vựng mới, không học thuộc trực tiếp
-1. Dịch nghĩa của từ
-1. Tập phát âm chính xác mỗi từ
-1. Tạo đoạn hội thoại, đọc lướt qua
-1. Nghe đoạn hội thoại và đoán nghĩa
-1. Tập trung các câu phản xạ
-1. Đọc nhái theo các câu
-1. Ghi chú ngữ pháp trong hội thoại
-1. Bài tập kiểm tra số từ đã thuộc dùng `RemNote`
-1. Cứ 3 buổi sẽ sử dụng `ChatGPT` để luyện nghe nói 1:1 trực tiếp với AI
----
-
-#### *Chủ đề đầy để luyện giao tiếp:*
-
+# *Chủ đề đầy để luyện giao tiếp:*
 🔹 A. Giao tiếp cơ bản (Essential Daily Topics – ~25 chủ đề)
 1. Giới thiệu bản thân
 1. Chào hỏi
