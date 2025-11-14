@@ -221,6 +221,9 @@
 - Sau khi tạo ra sheet mới chứa sô lượng từ vựng, nhiệm vụ tiếp theo là tìm nghĩa của từ ở cột bên cạnh và cách phiên âm
 - Chuyển sang định dạng csv bằng hàm `logSelectedWordsAsCSV()` trong `AppScript` và dán vào ChatGPT và yêu cầu chuyển định dạng csv sang định dạng của `RemNote` để có thể học từ vựng theo phương pháp `Spaced Repetition Systems`:
   ```less
+  hãy chuyển sang format RemNote như sau: từ tiếng anh <: nghĩa tiếng Việt (loại từ) loại từ dùng viết tắt, (noun) -> (n).
+  nghĩa tiếng việt nên chi tiết, ví dụ `might` và `may` có nghĩa tiếng Việt gần giống nhau, nhưng lại dùng ngữ cảnh khác nhau, vì vậy nên nghĩa tiếng Việt nên chi tiết, dễ phân biệt, còn từ nào độc lập, khó trùng nghĩa Tiếng Việt thì không cần chi tiết
+
   Định dạng cho RemNote:
   en_word <: vi_nghĩa #(bật Type In Answer)
   ```
